@@ -11,7 +11,7 @@ ABreakableActor::ABreakableActor()
     GeometryCollection = CreateDefaultSubobject<UGeometryCollectionComponent>(TEXT("Geometry Collection"));
     SetRootComponent(GeometryCollection);
     GeometryCollection->SetGenerateOverlapEvents(true);
-    GeometryCollection->SetCollisionResponse(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+    GeometryCollection->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 }
 
 void ABreakableActor::BeginPlay()
@@ -24,7 +24,7 @@ void ABreakableActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ABreakableActor::GetHit(const FVector& ImpactPoint)
+void ABreakableActor::GetHit_Implementation(const FVector& ImpactPoint)
 {
     
 }
