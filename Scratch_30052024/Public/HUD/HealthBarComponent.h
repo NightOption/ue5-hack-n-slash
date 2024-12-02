@@ -13,5 +13,10 @@ UCLASS()
 class SCRATCH_30052024_API UHealthBarComponent : public UWidgetComponent
 {
 	GENERATED_BODY()
+public:
+    void SetHealthPercent(float Percent);
+private:
+    UPROPERTY()
+    class UHealthBar* HealthBarWidget;
 	
 };

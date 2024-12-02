@@ -9,7 +9,7 @@
 
 class UAnimMontage;
 class UAttributeComponent;
-class UWidgetComponent;
+class UHealthBarComponent;
 
 UCLASS()
 class SCRATCH_30052024_API AEnemy : public ACharacter, public IHitInterface
@@ -20,10 +20,9 @@ public:
 	AEnemy();
     virtual void Tick(float DeltaTime) override;
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-    
     virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
-    
     void DirectionalHitReact(const FVector& ImpactPoint);
+    virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
     
 private:
     
@@ -31,7 +30,7 @@ private:
     UAttributeComponent* Attributes;
     
     UPROPERTY(VisibleAnywhere)
-    UWidgetComponent* HealthBarWidget;
+    UHealthBarComponent* HealthBarWidget;
     
     /**
      *Animation montages*
