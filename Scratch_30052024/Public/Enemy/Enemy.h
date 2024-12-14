@@ -53,6 +53,20 @@ private:
     
     UPROPERTY(EditAnywhere)
     double CombatRadius = 500.f;
+    
+    /**
+     *Navigation*
+     */
+    
+    UPROPERTY()
+    class AAIController* EnemyController;
+    
+//    Current patrol target
+    UPROPERTY(EditInstanceOnly, Category = "AI NAvigation")
+    AActor* PatrolTarget;
+    
+    UPROPERTY(EditInstanceOnly, Category = "AI NAvigation")
+    TArray<AActor*> PatrolTargets;
 
 protected:
 	virtual void BeginPlay() override;
@@ -60,7 +74,7 @@ protected:
     void Die();
     
     /**
-     Play montage functions
+     Play montage functions*
      */
     void PlayHitReactMontage(const FName& SectionName);
     
