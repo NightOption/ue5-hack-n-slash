@@ -105,7 +105,15 @@ void AEnemy::Die()
         HealthBarWidget->SetVisibility(false);
     }
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    SetLifeSpan(10.f);
+    SetLifeSpan(3.f);
+}
+
+bool AEnemy::InTargetRange(AActor* Target, double Radius)
+{
+    const double DistanceToTarget = (Target->GetActorLocation() - GetActorLocation()).Size();
+    DRAW_SPHERE_SingleFrame(GetActorLocation());
+    DRAW_SPHERE_SingleFrame(Target->GetActorLocation());
+    return DistanceToTarget <= Radius;;
 }
 
 void AEnemy::PlayHitReactMontage(const FName& SectionName)
@@ -124,13 +132,39 @@ void AEnemy::Tick(float DeltaTime)
     
     if (CombatTarget)
     {
-        const double DistanceToTarget = (CombatTarget->GetActorLocation() - GetActorLocation()).Size();
-        if (DistanceToTarget > CombatRadius)
+        if (!InTargetRange(CombatTarget, CombatRadius))
         {
             CombatTarget = nullptr;
             if (HealthBarWidget)
             {
                 HealthBarWidget->SetVisibility(false);
+            }
+        }
+    }
+    if (PatrolTarget && EnemyController)
+    {
+        if (InTargetRange(PatrolTarget, PatrolRadius))
+        {
+            TArray<AActor*> ValidTargets;
+            for (AActor* Target : PatrolTargets)
+            {
+                if (Target != PatrolTarget)
+                {
+                    ValidTargets.AddUnique(Target);
+                }
+            }
+            
+            const int32 NumPatrolTargets = ValidTargets.Num();
+            if (NumPatrolTargets > 0)
+            {
+                const int32 TargetSelection = FMath::RandRange(0, NumPatrolTargets - 1);
+                AActor* Target = ValidTargets[TargetSelection];
+                PatrolTarget = Target;
+                
+                FAIMoveRequest MoveRequest;
+                MoveRequest.SetGoalActor(PatrolTarget);
+                MoveRequest.SetAcceptanceRadius(15.f);
+                EnemyController->MoveTo(MoveRequest);
             }
         }
     }
