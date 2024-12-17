@@ -33,6 +33,7 @@ void AScratchCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+    Tags.Add(FName("Scratch"));
 }
 
 void AScratchCharacter::Tick(float DeltaTime)
