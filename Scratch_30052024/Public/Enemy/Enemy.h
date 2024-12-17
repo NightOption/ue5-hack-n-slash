@@ -11,6 +11,7 @@
 class UAnimMontage;
 class UAttributeComponent;
 class UHealthBarComponent;
+class UPawnSensingComponent;
 
 UCLASS()
 class SCRATCH_30052024_API AEnemy : public ACharacter, public IHitInterface
@@ -29,11 +30,18 @@ public:
     
 private:
     
+    /**
+     *Components*
+     */
+    
     UPROPERTY(VisibleAnywhere)
     UAttributeComponent* Attributes;
     
     UPROPERTY(VisibleAnywhere)
     UHealthBarComponent* HealthBarWidget;
+    
+    UPROPERTY(VisibleAnywhere)
+    UPawnSensingComponent* PawnSensing;
     
     /**
      *Animation montages*
@@ -89,6 +97,9 @@ protected:
     bool InTargetRange(AActor* Target, double Radius);
     void MoveToTarget(AActor* Target);
     AActor* ChoosePatrolTarget();
+    
+    UFUNCTION()
+    void PawnSeen(APawn* SeenPawn);
     
     /**
      Play montage functions*
