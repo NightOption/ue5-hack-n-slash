@@ -56,15 +56,6 @@ void AScratchCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAction(FName("Attack"), IE_Pressed, this, &AScratchCharacter::Attack);
 }
 
-void AScratchCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled)
-{
-    if (EquippedWeapon && EquippedWeapon->GetWeaponBox())
-    {
-        EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(CollisionEnabled);
-        EquippedWeapon->IgnoreActors.Empty();
-    }
-}
-
 void AScratchCharacter::MoveForward(float Value)
 {
     if (ActionState != EActionState::EAS_Unoccupied) return;
