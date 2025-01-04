@@ -11,6 +11,8 @@ AItem::AItem()
 	PrimaryActorTick.bCanEverTick = true;
     
     ItemMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ItemMeshComponent"));
+    ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+    ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     RootComponent = ItemMesh;
     
     RotationRate = FRotator(0.f, 45.f, 0.f);
