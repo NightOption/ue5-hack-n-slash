@@ -123,6 +123,7 @@ void AScratchCharacter::EKeyPressed()
 
 void AScratchCharacter::Attack()
 {
+    Super::Attack();
     const bool bCanAttack =
     ActionState == EActionState::EAS_Unoccupied &&
     CharacterState != ECharacterState::ECS_Unequipped;
@@ -171,6 +172,7 @@ void AScratchCharacter::FinishEquipping()
 
 void AScratchCharacter::PlayAttackMontage()
 {
+    Super::PlayAttackMontage();
     UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
     if (AnimInstance && AttackMontage)
     {
