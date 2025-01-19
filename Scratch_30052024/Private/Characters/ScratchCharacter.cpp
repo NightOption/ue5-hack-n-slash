@@ -5,14 +5,14 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Items/Item.h"
 #include "Items/Weapons/Weapon.h"
 #include "Animation/AnimMontage.h"
-#include "Components/BoxComponent.h"
 
 AScratchCharacter::AScratchCharacter()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
     
     bUseControllerRotationPitch = false;
     bUseControllerRotationYaw = false;
@@ -20,6 +20,12 @@ AScratchCharacter::AScratchCharacter()
     
     GetCharacterMovement()->bOrientRotationToMovement = true;
     GetCharacterMovement()->RotationRate = FRotator(0.f, 300.f, 0.f);
+    
+    GetMesh()->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+    GetMesh()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+    GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+    GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
+    GetMesh()->SetGenerateOverlapEvents(true);
 
     CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
     CameraBoom->SetupAttachment(GetRootComponent());
@@ -29,22 +35,9 @@ AScratchCharacter::AScratchCharacter()
     ViewCamera->SetupAttachment(CameraBoom);
 }
 
-void AScratchCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-	
-    Tags.Add(FName("Scratch"));
-}
-
-void AScratchCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
 void AScratchCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+    Super::SetupPlayerInputComponent(PlayerInputComponent);
 
     PlayerInputComponent->BindAxis(FName("MoveForward"), this, &AScratchCharacter::MoveForward);
     PlayerInputComponent->BindAxis(FName("MoveRight"), this, &AScratchCharacter::MoveRight);
@@ -54,6 +47,19 @@ void AScratchCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAction(FName("Jump"), IE_Pressed, this, &ACharacter::Jump);
     PlayerInputComponent->BindAction(FName("Equip"), IE_Pressed, this, &AScratchCharacter::EKeyPressed);
     PlayerInputComponent->BindAction(FName("Attack"), IE_Pressed, this, &AScratchCharacter::Attack);
+}
+
+void AScratchCharacter::GetHit_Implementation(const FVector& ImpactPoint)
+{
+    PlayHitSound(ImpactPoint);
+    SpawnHitParticles(ImpactPoint);
+}
+
+void AScratchCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	
+    Tags.Add(FName("EngageableTarget"));
 }
 
 void AScratchCharacter::MoveForward(float Value)
@@ -99,24 +105,17 @@ void AScratchCharacter::EKeyPressed()
     AWeapon* OverlappingWeapon = Cast<AWeapon>(OverlappingItem);
     if (OverlappingWeapon)
     {
-        OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
-        CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
-        OverlappingItem = nullptr;
-        EquippedWeapon = OverlappingWeapon;
+        EquipWeapon(OverlappingWeapon);
     }
     else
     {
         if (CanDisarm())
         {
-            PlayEquipMontage(FName("Unequip"));
-            CharacterState = ECharacterState::ECS_Unequipped;
-            ActionState = EActionState::EAS_EquippingWeapon;
+            Disarm();
         }
         else if (CanArm())
         {
-            PlayEquipMontage(FName("Equip"));
-            CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
-            ActionState = EActionState::EAS_EquippingWeapon;
+            Arm();
         }
     }
 }
@@ -132,6 +131,19 @@ void AScratchCharacter::Attack()
         PlayAttackMontage();
         ActionState = EActionState::EAS_Attacking;
     }
+}
+
+void AScratchCharacter::AttackEnd()
+{
+    ActionState = EActionState::EAS_Unoccupied;
+}
+
+void AScratchCharacter::EquipWeapon(AWeapon* Weapon)
+{
+    Weapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
+    CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+    OverlappingItem = nullptr;
+    EquippedWeapon = Weapon;
 }
 
 bool AScratchCharacter::CanAttack()
@@ -151,23 +163,32 @@ bool AScratchCharacter::CanArm()
 
 void AScratchCharacter::Disarm()
 {
+    PlayEquipMontage(FName("Unequip"));
+    CharacterState = ECharacterState::ECS_Unequipped;
+    ActionState = EActionState::EAS_EquippingWeapon;
+}
+
+void AScratchCharacter::Arm()
+{
+    PlayEquipMontage(FName("Equip"));
+    CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+    ActionState = EActionState::EAS_EquippingWeapon;
+}
+
+void AScratchCharacter::AttachWeaponToBack()
+{
     if(EquippedWeapon)
     {
         EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocket"));
     }
 }
 
-void AScratchCharacter::Arm()
+void AScratchCharacter::AttachWeaponToHand()
 {
     if(EquippedWeapon)
     {
         EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocket"));
     }
-}
-
-void AScratchCharacter::FinishEquipping()
-{
-    ActionState = EActionState::EAS_Unoccupied;
 }
 
 void AScratchCharacter::PlayEquipMontage(const FName& SectionName)
@@ -180,9 +201,12 @@ void AScratchCharacter::PlayEquipMontage(const FName& SectionName)
     }
 }
 
-void AScratchCharacter::AttackEnd()
+void AScratchCharacter::FinishEquipping()
 {
     ActionState = EActionState::EAS_Unoccupied;
-    
 }
+
+
+
+
 
