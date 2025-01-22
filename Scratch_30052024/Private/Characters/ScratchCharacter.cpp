@@ -52,6 +52,8 @@ void AScratchCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 void AScratchCharacter::GetHit_Implementation(const FVector& ImpactPoint)
 {
     Super::GetHit_Implementation(ImpactPoint);
+    
+    ActionState = EActionState::EAS_HitReaction;
 }
 
 void AScratchCharacter::BeginPlay()
@@ -201,6 +203,11 @@ void AScratchCharacter::PlayEquipMontage(const FName& SectionName)
 }
 
 void AScratchCharacter::FinishEquipping()
+{
+    ActionState = EActionState::EAS_Unoccupied;
+}
+
+void AScratchCharacter::HitReactEnd()
 {
     ActionState = EActionState::EAS_Unoccupied;
 }
