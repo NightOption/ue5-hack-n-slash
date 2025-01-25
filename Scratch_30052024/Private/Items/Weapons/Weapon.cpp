@@ -104,7 +104,7 @@ void AWeapon::ExecuteGetHit(FHitResult& BoxHit)
     IHitInterface* HitInterface = Cast<IHitInterface>(BoxHit.GetActor());
     if (HitInterface)
     {
-        HitInterface->Execute_GetHit(BoxHit.GetActor(),BoxHit.ImpactPoint);
+        HitInterface->Execute_GetHit(BoxHit.GetActor(),BoxHit.ImpactPoint, GetOwner());
     }
 }
 
@@ -115,6 +115,7 @@ void AWeapon::BoxTrace(FHitResult& BoxHit)
     
     TArray<AActor*> ActorsToIgnore;
     ActorsToIgnore.Add(this);
+    ActorsToIgnore.AddUnique(GetOwner());
     
     for (AActor* Actor : IgnoreActors)
     {

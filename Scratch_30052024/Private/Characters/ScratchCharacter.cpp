@@ -49,10 +49,11 @@ void AScratchCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAction(FName("Attack"), IE_Pressed, this, &AScratchCharacter::Attack);
 }
 
-void AScratchCharacter::GetHit_Implementation(const FVector& ImpactPoint)
+void AScratchCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
 {
-    Super::GetHit_Implementation(ImpactPoint);
+    Super::GetHit_Implementation(ImpactPoint, Hitter);
     
+    SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
     ActionState = EActionState::EAS_HitReaction;
 }
 
