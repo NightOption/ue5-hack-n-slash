@@ -49,6 +49,12 @@ void AScratchCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAction(FName("Attack"), IE_Pressed, this, &AScratchCharacter::Attack);
 }
 
+float AScratchCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
+{
+    HandleDamage(DamageAmount);
+    return DamageAmount;
+}
+
 void AScratchCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
 {
     Super::GetHit_Implementation(ImpactPoint, Hitter);
