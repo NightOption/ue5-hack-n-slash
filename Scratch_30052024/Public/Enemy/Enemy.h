@@ -76,9 +76,6 @@ private:
     UPROPERTY(EditAnywhere)
     TSubclassOf<class AWeapon> WeaponClass;
     
-    UPROPERTY()
-    AActor* CombatTarget;
-    
     UPROPERTY(EditAnywhere)
     double CombatRadius = 1000.f;
     

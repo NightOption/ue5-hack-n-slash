@@ -32,9 +32,17 @@ protected:
     void DisableCapsule();
     virtual bool CanAttack();
     bool IsAlive();
+    
     void PlayHitReactMontage(const FName& SectionName);
     virtual int32 PlayAttackMontage();
     virtual int32 PlayDeathMontage();
+    void StopAttackMontage();
+    
+    UFUNCTION(BlueprintCallable)
+    FVector GetTranslationWarpTarget();
+    
+    UFUNCTION(BlueprintCallable)
+    FVector GetRotationWarpTarget();
     
     UFUNCTION(BlueprintCallable)
     virtual void AttackEnd();
@@ -47,6 +55,12 @@ protected:
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
     UAttributeComponent* Attributes;
+    
+    UPROPERTY(BlueprintReadOnly, Category = Combat)
+    AActor* CombatTarget;
+    
+    UPROPERTY(EditAnywhere, Category = Combat)
+    double WarpTargetDistance = 75.f;
     
 private:
     void PlayMontageSection(UAnimMontage* Montage, const FName& SectionName);
