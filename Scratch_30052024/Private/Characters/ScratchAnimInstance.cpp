@@ -26,5 +26,7 @@ void UScratchAnimInstance::NativeUpdateAnimation(float DeltaTime)
         GroundSpeed = UKismetMathLibrary::VSizeXY(ScratchCharacterMovement->Velocity);
         IsFalling = ScratchCharacterMovement->IsFalling();
         CharacterState = ScratchCharacter->GetCharacterState();
+        ActionState = ScratchCharacter->GetActionState();
+        DeathPose = ScratchCharacter->GetDeathPose();
     }
 }

@@ -6,9 +6,13 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/AttributeComponent.h"
 #include "Items/Item.h"
 #include "Items/Weapons/Weapon.h"
 #include "Animation/AnimMontage.h"
+#include "HUD/ScratchHUD.h"
+#include "HUD/ScratchOverlay.h"
+
 
 AScratchCharacter::AScratchCharacter()
 {
@@ -44,14 +48,23 @@ void AScratchCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAxis(FName("Turn"), this, &AScratchCharacter::Turn);
     PlayerInputComponent->BindAxis(FName("LookUp"), this, &AScratchCharacter::LookUp);
     
-    PlayerInputComponent->BindAction(FName("Jump"), IE_Pressed, this, &ACharacter::Jump);
+    PlayerInputComponent->BindAction(FName("Jump"), IE_Pressed, this, &AScratchCharacter::Jump);
     PlayerInputComponent->BindAction(FName("Equip"), IE_Pressed, this, &AScratchCharacter::EKeyPressed);
     PlayerInputComponent->BindAction(FName("Attack"), IE_Pressed, this, &AScratchCharacter::Attack);
+}
+
+void AScratchCharacter::Jump()
+{
+    if (IsUnoccupied())
+    {
+        Super::Jump();
+    }
 }
 
 float AScratchCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
     HandleDamage(DamageAmount);
+    SetHUDHealth();
     return DamageAmount;
 }
 
@@ -60,7 +73,20 @@ void AScratchCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor
     Super::GetHit_Implementation(ImpactPoint, Hitter);
     
     SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
-    ActionState = EActionState::EAS_HitReaction;
+    if (Attributes && Attributes->GetHealthPercent() > 0.f)
+    {
+        ActionState = EActionState::EAS_HitReaction;
+    }
+}
+
+void AScratchCharacter::SetOverlappingItem(AItem* Item)
+{
+    OverlappingItem = Item;
+}
+
+void AScratchCharacter::AddSouls(ASoul* Soul)
+{
+    UE_LOG(LogTemp, Warning, TEXT("AScratchCharacter::AdSouls"));
 }
 
 void AScratchCharacter::BeginPlay()
@@ -68,6 +94,8 @@ void AScratchCharacter::BeginPlay()
 	Super::BeginPlay();
 	
     Tags.Add(FName("EngageableTarget"));
+    
+    InitializeScratchOverlay();
 }
 
 void AScratchCharacter::MoveForward(float Value)
@@ -209,6 +237,14 @@ void AScratchCharacter::PlayEquipMontage(const FName& SectionName)
     }
 }
 
+void AScratchCharacter::Die()
+{
+    Super::Die();
+    
+    ActionState = EActionState::EAS_Dead;
+    DisableMeshCollision();
+}
+
 void AScratchCharacter::FinishEquipping()
 {
     ActionState = EActionState::EAS_Unoccupied;
@@ -219,7 +255,35 @@ void AScratchCharacter::HitReactEnd()
     ActionState = EActionState::EAS_Unoccupied;
 }
 
+bool AScratchCharacter::IsUnoccupied()
+{
+    return ActionState == EActionState::EAS_Unoccupied;
+}
 
+void AScratchCharacter::InitializeScratchOverlay()
+{
+    APlayerController* PlayerController = Cast<APlayerController>(GetController());
+    if (PlayerController)
+    {
+        AScratchHUD* ScratchHUD = Cast<AScratchHUD>(PlayerController->GetHUD());
+        if (ScratchHUD)
+        {
+            UScratchOverlay* ScratchOverlay = ScratchHUD->GetScratchOverlay();
+            if (ScratchOverlay && Attributes)
+            {
+                ScratchOverlay->SetHealthBarPercent(Attributes->GetHealthPercent());
+                ScratchOverlay->SetStaminaBarPercent(1.f);
+                ScratchOverlay->SetGold(0);
+                ScratchOverlay->SetSouls(0);
+            }
+        }
+    }
+}
 
-
-
+void AScratchCharacter::SetHUDHealth()
+{
+    if (ScratchOverlay && Attributes)
+        {
+            ScratchOverlay->SetHealthBarPercent(Attributes->GetHealthPercent());
+        }
+}

@@ -5,23 +5,29 @@
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
 #include "CharacterTypes.h"
+#include "Interfaces/PickupInterface.h"
 #include "ScratchCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
 class AItem;
+class ASoul;
 class UAnimMontage;
+class UScratchOverlay;
 
 UCLASS()
-class SCRATCH_30052024_API AScratchCharacter : public ABaseCharacter
+class SCRATCH_30052024_API AScratchCharacter : public ABaseCharacter, public IPickupInterface
 {
 	GENERATED_BODY()
 
 public:
 	AScratchCharacter();
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+    virtual void Jump() override;
     virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
     virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
+    virtual void SetOverlappingItem(AItem* Item) override;
+    virtual void AddSouls(ASoul* Soul) override;
 
 protected:
     virtual void BeginPlay() override;
@@ -43,6 +49,7 @@ protected:
     void Disarm();
     void Arm();
     void PlayEquipMontage(const FName& SectionName);
+    virtual void Die() override;
     
     UFUNCTION(BlueprintCallable)
     void AttachWeaponToBack();
@@ -57,6 +64,10 @@ protected:
     void HitReactEnd();
 
 private:
+    bool IsUnoccupied();
+    void InitializeScratchOverlay();
+    void SetHUDHealth();
+    
     /** Character components */
     UPROPERTY(VisibleAnywhere)
     USpringArmComponent* CameraBoom;
@@ -75,7 +86,10 @@ private:
     UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
     EActionState ActionState = EActionState::EAS_Unoccupied;
     
+    UPROPERTY()
+    UScratchOverlay* ScratchOverlay;
+    
 public:
-    FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
     FORCEINLINE ECharacterState GetCharacterState () const { return CharacterState; }
+    FORCEINLINE EActionState GetActionState() const { return ActionState; }
 };
